@@ -24,7 +24,7 @@ public class FacturaEnLineaApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(FacturaEnLineaApplication.class, args);
-    }
+    } 
 
     @EnableWebSecurity
     @Configuration
