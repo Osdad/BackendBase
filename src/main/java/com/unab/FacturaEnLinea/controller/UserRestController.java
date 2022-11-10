@@ -58,9 +58,10 @@ public class UserRestController {
     }
     @PostMapping("/user")
     public User login(@RequestParam("user") String username, @RequestParam("password") String pwd) {
-        String token = getJWTToken(username);
+        
         User user = new User();
         user.setUsername(username);
+        String token = getJWTToken(username);
         user.setToken(token);
         return user;
 
@@ -72,7 +73,8 @@ public class UserRestController {
 
         final UserDetails userDetails = userService.loadUserByUsername(authenticationRequest.getUsername());
         User user = userRepository.findByUsername(userDetails.getUsername());
-        final String token = jwtTokenUtil.generateToken(userDetails);
+        //final String token = jwtTokenUtil.generateToken(userDetails);
+        final  String token = getJWTToken(user.getUsername());
 
         return ResponseEntity.ok(new JwtResponse(token, String.valueOf(user.getUsername()), user.getNombreCompleto()));
     }
