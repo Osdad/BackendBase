@@ -52,15 +52,12 @@ public class UserRestController {
     @Autowired
     private AuthenticationManager authenticationManager;
     
-   
-    
     @GetMapping("/mao")
     public String Saludo(){
         return "Hola";
     }
     @PostMapping("/user")
     public User login(@RequestParam("user") String username, @RequestParam("password") String pwd) {
-        
         String token = getJWTToken(username);
         User user = new User();
         user.setUsername(username);
