@@ -12,6 +12,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -19,11 +20,12 @@ import lombok.Data;
  * @author Marlon
  */
 @Entity()
-@Data
+@Data//lombok
 public class User {
     @Id()
     @Column(nullable = false, unique = true)
     @NotEmpty(message = "no puede estar vacio")
+    @Size(min = 4, max = 12, message = "el tamaño tiene que estar entre 4 y 12")
     private String username;
     private String password;
     private String nombreCompleto;

@@ -94,6 +94,7 @@ public class UserRestController {
         }
     }
 
+    //el metodo que se encarga de crear el TOKEN
     private String getJWTToken(String username) {
 		String secretKey = "mySecretKey";
 		List<GrantedAuthority> grantedAuthorities = AuthorityUtils

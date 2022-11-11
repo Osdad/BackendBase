@@ -5,14 +5,13 @@
  */
 package com.unab.FacturaEnLinea.repository;
 
-import com.unab.FacturaEnLinea.model.User; 
+import com.unab.FacturaEnLinea.model.Factura;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  *
  * @author Marlon
  */
-public interface UserRepository extends JpaRepository<User, String> {
-     User findByUsername(String username);
-     
+public interface FacturaRepository extends JpaRepository<Factura, Long> {
+    
 }
