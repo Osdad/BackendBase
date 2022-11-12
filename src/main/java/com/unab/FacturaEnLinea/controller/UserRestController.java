@@ -56,15 +56,13 @@ public class UserRestController {
     public String Saludo(){
         return "Hola";
     }
-    @PostMapping("/user")
+    @PostMapping("/user")//No valida con la base de datos
     public User login(@RequestParam("user") String username, @RequestParam("password") String pwd) {
-        
         User user = new User();
         user.setUsername(username);
-        String token = getJWTToken(username);
+        String token = getJWTToken(user);
         user.setToken(token);
         return user;
-
     }
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
@@ -74,7 +72,7 @@ public class UserRestController {
         final UserDetails userDetails = userService.loadUserByUsername(authenticationRequest.getUsername());
         User user = userRepository.findByUsername(userDetails.getUsername());
         //final String token = jwtTokenUtil.generateToken(userDetails);
-        final  String token = getJWTToken(user.getUsername());
+        final  String token = getJWTToken(user);
 
         return ResponseEntity.ok(new JwtResponse(token, String.valueOf(user.getUsername()), user.getNombreCompleto()));
     }
@@ -95,15 +93,15 @@ public class UserRestController {
     }
 
     //el metodo que se encarga de crear el TOKEN
-    private String getJWTToken(String username) {
+    private String getJWTToken(User user) {
 		String secretKey = "mySecretKey";
 		List<GrantedAuthority> grantedAuthorities = AuthorityUtils
 				.commaSeparatedStringToAuthorityList("ROLE_USER");
 		
 		String token = Jwts
 				.builder()
-				.setId("unabJWT")
-				.setSubject(username)
+				.setId(user.getUsername())
+				.setSubject(user.getNombreCompleto())
 				.claim("authorities",
 						grantedAuthorities.stream()
 								.map(GrantedAuthority::getAuthority)
