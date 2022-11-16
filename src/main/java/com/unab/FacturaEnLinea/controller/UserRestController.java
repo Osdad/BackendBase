@@ -25,6 +25,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @author Marlon
  */
 @RestController 
+@CrossOrigin("*")
 public class UserRestController {
 
     @Autowired
@@ -66,9 +68,8 @@ public class UserRestController {
     }
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
-
+        System.out.println("Intento de Login");
         authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
-
         final UserDetails userDetails = userService.loadUserByUsername(authenticationRequest.getUsername());
         User user = userRepository.findByUsername(userDetails.getUsername());
         //final String token = jwtTokenUtil.generateToken(userDetails);

@@ -29,6 +29,11 @@ public class User {
     private String username;
     private String password;
     private String nombreCompleto;
+    private String profesion;    
+    private String descripcionServicio;
+    private String urlFoto;
+    
+    
     @Temporal(TemporalType.DATE)
     private Date fechaCreacion;
     

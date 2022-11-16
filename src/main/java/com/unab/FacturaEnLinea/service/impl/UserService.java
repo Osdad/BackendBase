@@ -9,6 +9,7 @@ import com.unab.FacturaEnLinea.model.User;
 import com.unab.FacturaEnLinea.repository.UserRepository;
 import com.unab.FacturaEnLinea.service.IUserService;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -62,9 +63,17 @@ public class UserService implements UserDetailsService, IUserService{
     @Override
     public User save(User user) {
         User usuario=new User();
-        usuario.setUsername(user.getUsername());
+        usuario.setUsername(user.getUsername().toLowerCase());
         usuario.setPassword(bcryptEncoder.encode(user.getPassword()));
-        usuario.setNombreCompleto(user.getNombreCompleto());
+        usuario.setNombreCompleto(user.getNombreCompleto().toUpperCase());
+        usuario.setProfesion(user.getProfesion().toUpperCase());
+        
+        //usuario.setFechaCreacion(user.getFechaCreacion());
+        //return userRepo.save(user);
+        //user.setUsername(user.getUsername().toLowerCase());
+        //user.setPassword(bcryptEncoder.encode(user.getPassword()));
+        //user.setNombreCompleto(user.getNombreCompleto().toUpperCase());
+        //user.setFechaCreacion(new Date());
         return userRepo.save(usuario);
     }
 
