@@ -47,17 +47,17 @@ public class UserService implements UserDetailsService, IUserService{
 
     @Override
     public List<User> findAll() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return (List<User>) userRepo.findAll();
     }
 
     @Override
     public Page<User> findAll(Pageable pageable) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+           return (Page<User>) userRepo.findAll(pageable);
     }
 
     @Override
-    public User findById(Long id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public User findById(String id) {
+        return userRepo.findById(id).orElse(null);
     }
 
     @Override
@@ -67,6 +67,9 @@ public class UserService implements UserDetailsService, IUserService{
         usuario.setPassword(bcryptEncoder.encode(user.getPassword()));
         usuario.setNombreCompleto(user.getNombreCompleto().toUpperCase());
         usuario.setProfesion(user.getProfesion().toUpperCase());
+        usuario.setUrlFoto(user.getUrlFoto());
+        usuario.setDescripcionServicio(user.getDescripcionServicio());
+        
         
         //usuario.setFechaCreacion(user.getFechaCreacion());
         //return userRepo.save(user);
@@ -78,8 +81,8 @@ public class UserService implements UserDetailsService, IUserService{
     }
 
     @Override
-    public void delete(Long id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void delete(String id) {
+        userRepo.deleteById(id);
     }
     
 }

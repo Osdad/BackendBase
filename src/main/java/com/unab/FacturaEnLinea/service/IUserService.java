@@ -20,9 +20,9 @@ public interface IUserService {
     
     public Page<User> findAll(Pageable pageable);
     
-    public User findById(Long id);
+    public User findById(String id);
     
     public User save(User user);
     
-    public void delete(Long id);
+    public void delete(String id);
 }

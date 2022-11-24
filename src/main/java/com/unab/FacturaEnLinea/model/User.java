@@ -4,6 +4,8 @@
  * and open the template in the editor.
  */
 package com.unab.FacturaEnLinea.model; 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
