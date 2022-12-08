@@ -40,42 +40,4 @@ public class FacturaEnLineaApplication implements CommandLineRunner{
         fileService.init();
     }
 
-    @EnableWebSecurity
-    @Configuration
-    class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
-        private UserService userService;
-
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
-            http.csrf().disable()
-                    .addFilterAfter(new JWTAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
-                    .authorizeRequests()
-                    .antMatchers("/file").permitAll()
-                    .antMatchers(HttpMethod.POST, "/authenticate").permitAll()
-                    .antMatchers(HttpMethod.POST, "/register").permitAll()
-                    .antMatchers(HttpMethod.POST, "/user").permitAll()
-                    .anyRequest().anonymous().and();
-                    //.anyRequest().authenticated();
-        }
-
-        @Bean
-        CorsConfigurationSource corsConfigurationSource() {
-            final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-            source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
-            return source;
-        }
-
-        @Override
-        @Bean
-        public AuthenticationManager authenticationManagerBean() throws Exception {
-            return super.authenticationManagerBean();
-        }
-
-        @Bean
-        public PasswordEncoder passwordEncoder() {
-            return new BCryptPasswordEncoder();
-        }
-    }
-
 }

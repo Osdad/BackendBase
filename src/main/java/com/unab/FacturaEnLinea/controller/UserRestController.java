@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -31,9 +32,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -67,6 +71,9 @@ public class UserRestController {
      
     @Autowired
     private AuthenticationManager authenticationManager;
+    
+    @Autowired
+    private PasswordEncoder bcryptEncoder;
     
     @GetMapping("/user")
     public List<User> list() {
@@ -104,11 +111,10 @@ public class UserRestController {
     public User login(@RequestParam("user") String username, @RequestParam("password") String pwd) {
         User user = new User();
         user.setUsername(username);
-        String token = getJWTToken(user);
-        user.setToken(token);
+        //String token = getJWTToken(user);
         return user;
     }
-    @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
+    /*@RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
         System.out.println("Intento de Login");
         authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
@@ -118,9 +124,33 @@ public class UserRestController {
         final  String token = getJWTToken(user);
 
         return ResponseEntity.ok(new JwtResponse(token, String.valueOf(user.getUsername()), user.getNombreCompleto()));
+    }*/
+    
+    @PostMapping("/authenticate")
+    public ResponseEntity<?> login(@RequestBody JwtRequest loginUser){
+        
+         Map<String, Object> response = new HashMap<>();
+         //, BindingResult bidBindingResult
+        /*if(bidBindingResult.hasErrors()){
+            response.put("Mensaje", "Revise sus credenciales");
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+        }*/
+        try {
+                Authentication authentication = authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(loginUser.getUsername(), loginUser.getPassword())
+                );
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                User user = userRepository.findByUsername(loginUser.getUsername());
+                String token = jwtTokenUtil.generateToken(authentication, user);
+                return ResponseEntity.ok(new JwtResponse(token, String.valueOf(user.getUsername()), user.getNombreCompleto()));
+                
+        } catch (Exception e) {
+                response.put("Mensaje",e.toString());
+               return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+        }
     }
     
-     @PutMapping("user/{id}")
+    @PutMapping("user/{id}")
     public ResponseEntity<?> put(@Valid @RequestBody User user, BindingResult result, @PathVariable String id) {
         User userActual = userService.findById(id);
 
@@ -159,13 +189,14 @@ public class UserRestController {
         }
 
         response.put("mensaje", "El usuario ha sido actualizado con éxito!");
-        response.put("cliente", userActualizado);
+        response.put("usuario", userActualizado);
 
-        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+        //return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+        return ResponseEntity.ok(userService.save(user));
     }
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     public ResponseEntity<?> saveUser(@RequestBody User user) throws Exception {
-        System.out.println(user);
+        user.setPassword(bcryptEncoder.encode(user.getPassword()));
         return ResponseEntity.ok(userService.save(user));
     }
     
@@ -186,37 +217,5 @@ public class UserRestController {
 
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
-
-    private void authenticate(String username, String password) throws Exception {
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-        } catch (DisabledException e) {
-            throw new Exception("USER_DISABLED", e);
-        } catch (BadCredentialsException e) {
-            throw new Exception("INVALID_CREDENTIALS", e);
-        }
-    }
-
-    //el metodo que se encarga de crear el TOKEN
-    private String getJWTToken(User user) {
-		String secretKey = "mySecretKey";
-		List<GrantedAuthority> grantedAuthorities = AuthorityUtils
-				.commaSeparatedStringToAuthorityList("ROLE_USER");
-		
-		String token = Jwts
-				.builder()
-				.setId(user.getUsername())
-				.setSubject(user.getNombreCompleto())
-				.claim("authorities",
-						grantedAuthorities.stream()
-								.map(GrantedAuthority::getAuthority)
-								.collect(Collectors.toList()))
-				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + 600000))
-				.signWith(SignatureAlgorithm.HS512,
-						secretKey.getBytes()).compact();
-
-		return "Bearer " + token;
-	}
-
+ 
 }

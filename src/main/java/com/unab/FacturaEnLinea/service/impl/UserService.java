@@ -62,22 +62,22 @@ public class UserService implements UserDetailsService, IUserService{
 
     @Override
     public User save(User user) {
-        User usuario=new User();
+        user.setNombreCompleto(user.getNombreCompleto().toUpperCase());
+        return userRepo.save(user);
+        /*User usuario=new User();
         usuario.setUsername(user.getUsername().toLowerCase());
         usuario.setPassword(bcryptEncoder.encode(user.getPassword()));
         usuario.setNombreCompleto(user.getNombreCompleto().toUpperCase());
         usuario.setProfesion(user.getProfesion().toUpperCase());
         usuario.setUrlFoto(user.getUrlFoto());
         usuario.setDescripcionServicio(user.getDescripcionServicio());
-        
-        
-        //usuario.setFechaCreacion(user.getFechaCreacion());
+        usuario.setFechaCreacion(user.getFechaCreacion());*/
         //return userRepo.save(user);
         //user.setUsername(user.getUsername().toLowerCase());
         //user.setPassword(bcryptEncoder.encode(user.getPassword()));
         //user.setNombreCompleto(user.getNombreCompleto().toUpperCase());
         //user.setFechaCreacion(new Date());
-        return userRepo.save(usuario);
+        //return userRepo.save(usuario);
     }
 
     @Override

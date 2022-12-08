@@ -1,77 +1,80 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.unab.FacturaEnLinea.security;
-
-import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
-
-import io.jsonwebtoken.Claims;
+ 
+import com.unab.FacturaEnLinea.model.User;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+import org.springframework.security.core.userdetails.UserDetails;
 
+/**
+ *
+ * @author Marlon
+ */
 @Component
-public class JwtTokenUtil implements Serializable {
+public class JwtTokenUtil {
+    private final static Logger logger = LoggerFactory.getLogger(JwtTokenUtil.class);
+    
+    //Clave para verificar el token
+    @Value("${jwt.secret}")
+    private String secret;
 
-	private static final long serialVersionUID = -2550185165626007488L;
-	
-	public static final long JWT_TOKEN_VALIDITY = 5*60*60;
+    //Tiempo base de expiración
+    @Value("${jwt.expiration}")
+    private int expiration;
+    
+     public String generateToken(Authentication authentication, User user){
+        UserDetails mainUser = (UserDetails) authentication.getPrincipal();
+        logger.error(mainUser.getUsername());
+        return Jwts.builder()
+               .setId(mainUser.getUsername())
+               .setSubject(user.getNombreCompleto())
+               .setIssuedAt(new Date())
+               .setExpiration(new Date(new Date().getTime() + expiration *1000))
+               .signWith(SignatureAlgorithm.HS512, secret)
+               .compact();
+    }
+     
+    //Creamos una función que permita obtener el nombre de usuario con el token
+    public String getUserNameFromToken(String token){
+        //OBTENER ASUNTO
+        //Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject()
+        //OBTENER ID
+        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getId();
+        
+    }
 
-	@Value("${jwt.secret}")
-	private String secret;
+    //Creamos una función que permita validar nuestro token con la firma secreta
+    //Controlamos cualquier error que pueda existir con el token
 
-	public String getUsernameFromToken(String token) {
-		return getClaimFromToken(token, Claims::getSubject);
-	}
-
-	public Date getIssuedAtDateFromToken(String token) {
-		return getClaimFromToken(token, Claims::getIssuedAt);
-	}
-
-	public Date getExpirationDateFromToken(String token) {
-		return getClaimFromToken(token, Claims::getExpiration);
-	}
-
-	public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
-		final Claims claims = getAllClaimsFromToken(token);
-		return claimsResolver.apply(claims);
-	}
-
-	private Claims getAllClaimsFromToken(String token) {
-		return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
-	}
-
-	private Boolean isTokenExpired(String token) {
-		final Date expiration = getExpirationDateFromToken(token);
-		return expiration.before(new Date());
-	}
-
-	private Boolean ignoreTokenExpiration(String token) {
-		// here you specify tokens, for that the expiration is ignored
-		return false;
-	}
-
-	public String generateToken(UserDetails userDetails) {
-		Map<String, Object> claims = new HashMap<>();
-		return doGenerateToken(claims, userDetails.getUsername());
-	}
-
-	private String doGenerateToken(Map<String, Object> claims, String subject) {
-
-		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY*1000)).signWith(SignatureAlgorithm.HS512, secret).compact();
-	}
-
-	public Boolean canTokenBeRefreshed(String token) {
-		return (!isTokenExpired(token) || ignoreTokenExpiration(token));
-	}
-
-	public Boolean validateToken(String token, UserDetails userDetails) {
-		final String username = getUsernameFromToken(token);
-		return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-	}
+    public boolean validateToken(String token){
+        try {
+            Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
+            return true;
+        }catch (MalformedJwtException e){
+            logger.error("token mal formado");
+        }catch (UnsupportedJwtException e){
+            logger.error("token no soportado");
+        }catch (ExpiredJwtException e){
+            logger.error("token expirado");
+        }catch (IllegalArgumentException e){
+            logger.error("token vacío");
+        }catch (SignatureException e){
+            logger.error("fallo en la firma");
+        }
+        return false;
+    }
 }
